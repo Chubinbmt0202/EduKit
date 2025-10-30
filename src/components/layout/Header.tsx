@@ -1,31 +1,34 @@
-// CustomHeader.tsx
-
 import React from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    // THÊM CÁC ICONS MỚI
-    CrownOutlined, // Icon Nâng cấp/Pro
-    UserOutlined, // Icon Người dùng (Avatar)
-    BellOutlined, // Icon Chuông thông báo
+    CrownOutlined,
+    UserOutlined,
+    BellOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Avatar } from 'antd'; // Thêm Avatar
+import { Button, Layout, Avatar } from 'antd';
 
 const { Header } = Layout;
 
 interface CustomHeaderProps {
     collapsed: boolean;
     setCollapsed: (collapsed: boolean) => void;
-    colorBgContainer: string; // Vẫn giữ prop này trong interface
+    colorBgContainer: string;
 }
 
-// Bỏ colorBgContainer khỏi destructuring nếu không dùng nó
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
     return (
         <Header
             // Đảm bảo Header full width và có chiều cao cố định
             className="h-16"
-            style={{ padding: 0, background: 'white' }}
+            // ⭐ CHỈNH SỬA TẠI ĐÂY: Cố định Header ở trên cùng
+            style={{
+                padding: 0,
+                background: 'white',
+                position: 'sticky', // Hoặc 'fixed'
+                top: 0,
+                zIndex: 10, // Đảm bảo nó nằm trên Content
+            }}
         >
             {/* Sử dụng FLEXBOX để chia thành 2 phần: Trái (Collapse) và Phải (Các nút tính năng) */}
             <div className="flex justify-between items-center h-full px-4">
