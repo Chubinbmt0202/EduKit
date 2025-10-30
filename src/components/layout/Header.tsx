@@ -58,7 +58,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
                     <Button
                         style={{ outline: 'none' }}
                         type="text"
-                        icon={<BellOutlined className="text-xl" />}
+                        icon={<BellOutlined />}
                         className="focus:outline-none hover:!bg-gray-100 active:!bg-gray-200"
                     />
 
