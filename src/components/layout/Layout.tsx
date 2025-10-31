@@ -12,11 +12,21 @@ const CustomLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
 
+    // Chiều rộng của Sider khi không/có collapse
+    const siderWidth = 250;
+    const collapsedWidth = 80; // Ant Design default
+
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', flexDirection: 'row' }}>
+            {/* 1. Sidebar cố định */}
             <CustomSidebar
                 collapsed={collapsed}
             />
+
+            {/* 2. Div giữ chỗ cho Sider (quan trọng khi Sider fixed) */}
+            <div style={{ width: collapsed ? collapsedWidth : siderWidth, flexShrink: 0, transition: 'all 0.2s' }} />
+
+            {/* 3. Layout chính (Header + Content) */}
             <Layout>
                 <CustomHeader
                     collapsed={collapsed}
