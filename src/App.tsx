@@ -8,6 +8,7 @@ import Feedback from "./pages/FeedBack"
 import UserProfile from "./pages/UserProfile"
 import UserGuide from "./pages/Guide"
 import ActivityHistory from "./pages/ActivityHistory"
+import RechargePaymentPage from "./pages/RechargePaymentPage"
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/user-profile" element={<UserProfile />} />
           <Route path="/folders/quizzes/:id" element={<QuizDetail />} />
+          <Route path="/recharge" element={<RechargePaymentPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
     MenuFoldOutlined,
@@ -7,8 +8,10 @@ import {
     BellOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Avatar } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Header } = Layout;
+
 
 interface CustomHeaderProps {
     collapsed: boolean;
@@ -17,11 +20,17 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
+    const navigate = useNavigate();
+
+    const handlePayment = () => {
+        // Logic để chuyển hướng sang trang thanh toán
+        navigate('/recharge'); // Thay đổi URL theo nhu cầu
+    }
+
     return (
         <Header
             // Đảm bảo Header full width và có chiều cao cố định
             className="h-16"
-            // ⭐ CHỈNH SỬA TẠI ĐÂY: Cố định Header ở trên cùng
             style={{
                 padding: 0,
                 background: 'white',
@@ -53,7 +62,13 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
                 <div className="flex items-center space-x-4 mr-6">
 
                     {/* Nút Nâng cấp (Upgrade Button) */}
-                    <Button style={{ outline: 'none', padding: '18px 12px' }} type="primary" size="small" className="bg-blue-500 hover:!bg-blue-600 flex items-center space-x-1">
+                    <Button
+                        onClick={handlePayment} // Gọi hàm hiển thị Modal
+                        style={{ outline: 'none', padding: '18px 12px' }}
+                        type="primary"
+                        size="small"
+                        className="bg-blue-500 hover:!bg-blue-600 flex items-center space-x-1"
+                    >
                         <CrownOutlined /> Nâng cấp
                     </Button>
 
