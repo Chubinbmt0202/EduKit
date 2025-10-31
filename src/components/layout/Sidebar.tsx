@@ -6,9 +6,8 @@ import {
     FolderOpenOutlined,
     BookOutlined,
     CommentOutlined,
-    // ⭐ ICONS MỚI ĐƯỢC THÊM
-    SettingOutlined,
     QuestionCircleOutlined,
+    HomeOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 
@@ -50,13 +49,13 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                     // --- NHÓM CHỨC NĂNG CHÍNH ---
                     {
                         key: '1',
-                        icon: <UserOutlined />,
-                        label: <Link to="/">Trang chủ</Link>,
+                        icon: <HomeOutlined />,
+                        label: <Link to="/">Tạo bộ đề</Link>,
                     },
                     {
                         key: '4',
                         icon: <FolderOpenOutlined />,
-                        label: <Link to="/folders">Bộ đề đã tạo</Link>,
+                        label: <Link to="/folders">Quản lý bộ đề</Link>,
                     },
                     {
                         type: 'divider', // Dùng để phân chia nhóm chức năng
@@ -89,7 +88,7 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                     // ⭐ MỤC MỚI: CÀI ĐẶT
                     {
                         key: 'settings',
-                        icon: <SettingOutlined />,
+                        icon: <UserOutlined />,
                         label: <Link to="/settings">Tài khoản của bạn</Link>,
                     },
                 ]}

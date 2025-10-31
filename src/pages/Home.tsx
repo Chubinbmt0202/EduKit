@@ -4,12 +4,14 @@ import React from 'react';
 import { Card, Typography, message, Upload, Button, Input, Checkbox, Radio } from 'antd';
 import type { UploadProps } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
+// Import Modal đã tạo
+import ProcessingModal from '../components/features/lectures/ProcessingModal';
+import InsufficientFundsModal from '../components/features/lectures/InsufficientFundsModal'; // Import Modal mới
 
 const { Paragraph } = Typography;
 const { Dragger } = Upload;
 
 const plainOptions = ['Trắc nghiệm', 'Đúng sai', 'Điền từ', 'Ghép nối', 'Thẻ ghi nhớ', 'Phân loại',];
-
 
 const props: UploadProps = {
     name: 'file',
@@ -32,6 +34,45 @@ const props: UploadProps = {
 };
 
 const Home: React.FC = () => {
+    // State để quản lý việc hiển thị Modal Tiến trình
+    const [isProcessModalVisible, setIsProcessModalVisible] = React.useState(false);
+    // State để quản lý việc hiển thị Modal Thiếu tiền
+    const [isFundsModalVisible, setIsFundsModalVisible] = React.useState(false);
+
+    // Hàm đóng Modal Tiến trình
+    const handleCloseProcessModal = () => {
+        setIsProcessModalVisible(false);
+    }
+
+    // Hàm đóng Modal Thiếu tiền
+    const handleCloseFundsModal = () => {
+        setIsFundsModalVisible(false);
+    }
+
+    // Hàm xử lý khi nhấn nút Nạp tiền
+    const handleTopUp = () => {
+        setIsFundsModalVisible(false);
+        // Trong thực tế, bạn sẽ dùng history.push('/top-up') hoặc window.location.href
+        message.info('Đang chuyển đến trang nạp tiền...');
+    }
+
+
+    // Hàm xử lý khi nhấn nút TẠO BỘ CÂU HỎI
+    const ShowModelProcess = () => {
+        // --- Logic GIẢ ĐỊNH kiểm tra số dư ---
+        const hasSufficientFunds = Math.random() > 0.5; // Giả định: 50% fail
+
+        if (hasSufficientFunds) {
+            // Trường hợp đủ tiền: Hiển thị Modal tiến trình AI
+            setIsProcessModalVisible(true);
+            message.info('Yêu cầu tạo bộ câu hỏi đang được xử lý...');
+        } else {
+            // Trường hợp thiếu tiền: Hiển thị Modal Thiếu tiền
+            setIsFundsModalVisible(true);
+            message.warning('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
+        }
+    }
+
     return (
         <div>
             <div className="flex">
@@ -84,10 +125,24 @@ const Home: React.FC = () => {
                         </div>
                     </div>
                     <div className='mt-10 flex justify-end'>
-                        <Button type="primary">Tạo bộ câu hỏi</Button>
+                        <Button onClick={ShowModelProcess} type="primary">Tạo bộ câu hỏi</Button>
                     </div>
                 </Card>
             </div>
+
+            {/* Component Modal Tiến trình AI */}
+            <ProcessingModal
+                isVisible={isProcessModalVisible}
+                onClose={() => handleCloseProcessModal()}
+                onSuccess={() => handleCloseProcessModal()}
+            />
+
+            {/* Component Modal Thiếu tiền */}
+            <InsufficientFundsModal
+                isVisible={isFundsModalVisible}
+                onClose={handleCloseFundsModal}
+                onNavigateToTopUp={handleTopUp}
+            />
 
         </div>
 
