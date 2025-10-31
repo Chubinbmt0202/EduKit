@@ -11,7 +11,8 @@ import {
 import MultipleChoiceTab from '../components/features/quizes/MultipleChoiceTab';
 import FillInTheBlanksTab from '../components/features/quizes/FillInTheBlanksTab';
 import MatchingTab from '../components/features/quizes/MatchingTab';
-// import CategorizationTab from '../components/features/quizzes/tabs/CategorizationTab';
+import SortTab from '../components/features/quizes/SortTab';
+import FlashcardsTab from '../components/features/quizes/FlashCardTab';
 // ----------------------------------------
 
 // const { Paragraph } = Typography;
@@ -125,9 +126,11 @@ const QuizCreationPage: React.FC = () => {
                             <MatchingTab />
                         </Tabs.TabPane>
                         <Tabs.TabPane tab={<Space><ProductOutlined />Phân loại</Space>} key="categorization">
-                            {/* <CategorizationTab /> */}
+                            <SortTab />
                         </Tabs.TabPane>
-                        {/* Thêm các loại khác (Đúng sai, Thẻ ghi nhớ) tại đây */}
+                        <Tabs.TabPane tab={<Space><ProductOutlined />Thẻ ghi nhớ</Space>} key="flashcards">
+                            <FlashcardsTab />
+                        </Tabs.TabPane>
                     </Tabs>
 
                 </Card>
