@@ -13,6 +13,7 @@ import FillInTheBlanksTab from '../components/features/quizes/FillInTheBlanksTab
 import MatchingTab from '../components/features/quizes/MatchingTab';
 import SortTab from '../components/features/quizes/SortTab';
 import FlashcardsTab from '../components/features/quizes/FlashCardTab';
+import TrueFalseTab from '../components/features/quizes/TrueFalseTab';
 // ----------------------------------------
 
 // const { Paragraph } = Typography;
@@ -130,6 +131,9 @@ const QuizCreationPage: React.FC = () => {
                         </Tabs.TabPane>
                         <Tabs.TabPane tab={<Space><ProductOutlined />Thẻ ghi nhớ</Space>} key="flashcards">
                             <FlashcardsTab />
+                        </Tabs.TabPane>
+                        <Tabs.TabPane tab={<Space><ProductOutlined />Đúng sai</Space>} key="true_false">
+                            <TrueFalseTab />
                         </Tabs.TabPane>
                     </Tabs>
 

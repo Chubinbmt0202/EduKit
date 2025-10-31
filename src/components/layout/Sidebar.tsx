@@ -69,7 +69,7 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                     {
                         key: '5',
                         icon: <BookOutlined />,
-                        label: <Link to="/guides">Hướng dẫn sử dụng</Link>,
+                        label: <Link to="/UserGuide">Hướng dẫn sử dụng</Link>,
                     },
                     // ⭐ MỤC MỚI: HỖ TRỢ
                     {
@@ -87,9 +87,9 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                     },
                     // ⭐ MỤC MỚI: CÀI ĐẶT
                     {
-                        key: 'settings',
+                        key: 'user-profile',
                         icon: <UserOutlined />,
-                        label: <Link to="/settings">Tài khoản của bạn</Link>,
+                        label: <Link to="/user-profile">Tài khoản của bạn</Link>,
                     },
                 ]}
             />
