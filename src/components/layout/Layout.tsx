@@ -31,7 +31,6 @@ const CustomLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                 <CustomHeader
                     collapsed={collapsed}
                     setCollapsed={setCollapsed}
-                    colorBgContainer={colorBgContainer}
                 />
                 <Content
                     style={{
