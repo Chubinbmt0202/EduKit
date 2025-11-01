@@ -1,7 +1,12 @@
 /* Tùy chỉnh CSS cho Ant Design Tabs để Sidebar hiển thị đúng */
+.quiz-sidebar-tabs {
+    height: max-content;
+}
+
 .quiz-sidebar-tabs .ant-tabs-nav {
     /* Loại bỏ khoảng trắng/margin mặc định của phần đầu Tabs */
     margin: 0 !important;
+    height: 500px !important;
 }
 
 .quiz-sidebar-tabs .ant-tabs-tab {
