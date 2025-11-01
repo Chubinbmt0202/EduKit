@@ -9,31 +9,39 @@ import {
 } from '@ant-design/icons';
 import './sidebarQuize.css';
 import MultiPage from '../page/Mutilpage';
-
+import TrueFalse from '../page/TrueFalsepage';
+import FillPage from '../page/Fillpage';
+import MatchingPage from '../page/Matchingpage';
+import SortPage from '../page/Sortpage';
+import FlashCardpage from '../page/FlashCardpage';
 
 // Component/Hàm đơn giản để hiển thị nội dung theo loại câu hỏi
-const QuestionContent: React.FC<{ type: string, index: number }> = ({ type, index }) => {
+const QuestionContent: React.FC<{ type: string, index: number }> = ({ type }) => {
     // Dữ liệu nội dung mẫu tùy thuộc vào loại câu hỏi
     switch (type) {
         case 'Trắc nghiệm':
             return (
                 <MultiPage />
             );
-        case 'Tự luận':
+        case 'Điền từ còn thiếu':
             return (
-                <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <h3 className="text-xl font-bold text-green-600">Câu hỏi {index} - Tự luận</h3>
-                    <p className="mt-2 text-gray-700">Bạn hãy viết câu trả lời chi tiết không quá 500 từ.</p>
-                    {/* Ở đây bạn sẽ render component Textarea hoặc Editor */}
-                </div>
+                <FillPage />
             );
         case 'Đúng/Sai':
             return (
-                <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <h3 className="text-xl font-bold text-red-600">Câu hỏi {index} - Đúng/Sai</h3>
-                    <p className="mt-2 text-gray-700">Chọn Đúng hoặc Sai cho câu phát biểu này.</p>
-                    {/* Ở đây bạn sẽ render các nút Đúng/Sai */}
-                </div>
+                <TrueFalse />
+            );
+        case 'Ghép nối':
+            return (
+                <MatchingPage />
+            );
+        case 'Phân loại':
+            return (
+                <SortPage />
+            );
+        case 'Thẻ ghi nhớ':
+            return (
+                <FlashCardpage />
             );
         default:
             return (
@@ -49,12 +57,11 @@ const QuestionContent: React.FC<{ type: string, index: number }> = ({ type, inde
 // Dữ liệu mẫu: Icon và Tên loại câu hỏi
 const mockQuizItems = [
     { type: 'Trắc nghiệm', icon: <CheckCircleOutlined style={{ fontSize: '18px' }} /> },
-    { type: 'Tự luận', icon: <FormOutlined style={{ fontSize: '18px' }} /> },
+    { type: 'Điền từ còn thiếu', icon: <FormOutlined style={{ fontSize: '18px' }} /> },
     { type: 'Đúng/Sai', icon: <SafetyOutlined style={{ fontSize: '18px' }} /> },
-    { type: 'Điền khuyết', icon: <BorderOutlined style={{ fontSize: '18px' }} /> },
-    { type: 'Sắp xếp', icon: <BarsOutlined style={{ fontSize: '18px' }} /> },
-    { type: 'Sắp xếp', icon: <BarsOutlined style={{ fontSize: '18px' }} /> },
-    { type: 'Sắp xếp', icon: <BarsOutlined style={{ fontSize: '18px' }} /> },
+    { type: 'Ghép nối', icon: <BorderOutlined style={{ fontSize: '18px' }} /> },
+    { type: 'Phân loại', icon: <BarsOutlined style={{ fontSize: '18px' }} /> },
+    { type: 'Thẻ ghi nhớ', icon: <BarsOutlined style={{ fontSize: '18px' }} /> },
 
 ];
 
