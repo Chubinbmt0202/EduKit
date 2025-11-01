@@ -1,0 +1,33 @@
+/* Tùy chỉnh CSS cho Ant Design Tabs để Sidebar hiển thị đúng */
+.quiz-sidebar-tabs .ant-tabs-nav {
+    /* Loại bỏ khoảng trắng/margin mặc định của phần đầu Tabs */
+    margin: 0 !important;
+}
+
+.quiz-sidebar-tabs .ant-tabs-tab {
+    margin: 0 !important;
+}
+
+.quiz-sidebar-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    /* Đảm bảo không có viền xanh dương/màu mặc định khi active */
+    color: inherit !important;
+}
+
+.quiz-sidebar-tabs .ant-tabs-tab-btn {
+    /* Đảm bảo nội dung label được căn chỉnh */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    /* Quan trọng để căn chỉnh icon/số */
+}
+
+/* Loại bỏ gạch chân màu xanh (Indicator) */
+.quiz-sidebar-tabs .ant-tabs-ink-bar {
+    display: none !important;
+}
+
+/* Sử dụng class tùy chỉnh của bạn để nhắm mục tiêu an toàn hơn */
+.quiz-sidebar-tabs .ant-tabs-content-holder {
+    border: none !important;
+}
