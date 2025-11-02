@@ -33,7 +33,7 @@ const App: React.FC = () => {
       <Routes>
         {/* Quiz routes */}
         <Route
-          path={ROUTES.HOME.replace(':id', ':id')}
+          path={ROUTES.STUDENT}
           element={
             <LayoutQuiz>
               <StudentQuizPage />
