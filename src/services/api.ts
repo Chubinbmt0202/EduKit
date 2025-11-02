@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/api.ts
-import { API_CONFIG, API_ENDPOINTS } from '../constants/api.constants';
+import { API_CONFIG } from '../constants/api.constants';
 import type { ApiResponse } from '../types';
 
 class ApiService {
