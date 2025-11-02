@@ -12,7 +12,7 @@ interface SourceDocumentViewerProps {
 
 const SourceDocumentViewer: React.FC<SourceDocumentViewerProps> = ({ documentContent }) => {
     return (
-        <Panel defaultSize={35} minSize={35} maxSize={60}>
+        <Panel defaultSize={40} minSize={35} maxSize={60}>
             <div className='pr-4'>
                 <Card size="small" >
 
