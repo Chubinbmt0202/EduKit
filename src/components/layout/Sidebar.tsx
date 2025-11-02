@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useMemo } from 'react'; // Import useMemo
+import { Link, useLocation } from 'react-router-dom'; // Import useLocation
 import {
     UserOutlined,
     HistoryOutlined,
@@ -18,6 +18,26 @@ interface CustomSidebarProps {
 }
 
 const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
+    const location = useLocation();
+    const getSelectedKey = useMemo(() => {
+        const path = location.pathname;
+        const pathKeyMap: { [key: string]: string } = {
+            '/': '1',
+            '/folders': '4',
+            '/history': '3',
+            '/UserGuide': '5',
+            '/support': 'help',
+            '/feedback': '6',
+            '/user-profile': 'user-profile',
+        };
+        const key = pathKeyMap[path] || '';
+        if (!key && path.startsWith('/folders')) {
+            return ['4'];
+        }
+        return [key || '1'];
+
+    }, [location.pathname]); // Phụ thuộc vào thay đổi path
+
     return (
         <Sider
             width={250}
@@ -25,7 +45,6 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
             trigger={null}
             collapsible
             collapsed={collapsed}
-            // Style cố định vị trí
             style={{
                 overflow: 'auto',
                 height: '100vh',
@@ -33,7 +52,7 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                 left: 0,
                 top: 0,
                 bottom: 0,
-                zIndex: 20, // Đảm bảo Sider nằm trên các nội dung khác
+                zIndex: 20,
             }}
         >
             {/* KHU VỰC LOGO */}
@@ -44,7 +63,9 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
             </div>
             <Menu
                 mode="inline"
-                defaultSelectedKeys={['1']}
+                // ⭐ BƯỚC 3: Thay thế defaultSelectedKeys bằng selectedKeys ⭐
+                // và truyền giá trị đã tính toán dựa trên URL
+                selectedKeys={getSelectedKey}
                 items={[
                     // --- NHÓM CHỨC NĂNG CHÍNH ---
                     {
@@ -58,7 +79,7 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                         label: <Link to="/folders">Quản lý bộ đề</Link>,
                     },
                     {
-                        type: 'divider', // Dùng để phân chia nhóm chức năng
+                        type: 'divider',
                     },
                     // --- NHÓM HỖ TRỢ & CÀI ĐẶT ---
                     {
@@ -71,7 +92,6 @@ const CustomSidebar: React.FC<CustomSidebarProps> = ({ collapsed }) => {
                         icon: <BookOutlined />,
                         label: <Link to="/UserGuide">Hướng dẫn sử dụng</Link>,
                     },
-                    // ⭐ MỤC MỚI: HỖ TRỢ
                     {
                         key: 'help',
                         icon: <QuestionCircleOutlined />,
