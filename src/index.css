@@ -1,11 +1,3 @@
-/* src/index.css */
-@import "tailwindcss";
-
-/* Các style tùy chỉnh khác (nếu có) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Các CSS tùy chỉnh khác nên đặt ở đây */
 
 :root {

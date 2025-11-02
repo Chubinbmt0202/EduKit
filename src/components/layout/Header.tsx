@@ -64,11 +64,12 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
 
     return (
         <Header
-            className="h-16 px-4 bg-white"
+            className="h-16 bg-white"
             style={{
                 position: 'sticky',
                 top: 0,
                 zIndex: 10,
+                padding: '1rem',
                 backgroundColor: '#fff',
                 borderBottom: '1px solid #f0f0f0',
             }}
