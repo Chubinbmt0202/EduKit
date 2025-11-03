@@ -1,8 +1,10 @@
 // src/constants/routes.ts
 export const ROUTES = {
     HOME: '/',
+    STUDENT: '/student',
     SEARCH: '/search',
     HISTORY: '/history',
+    LOGIN: '/login',
     FOLDERS: '/folders',
     FOLDERS_QUIZZES: (id: string) => `/folders/quizzes/${id}`,
     GUIDES: '/guides',

@@ -17,6 +17,7 @@ import QuizDetail from './pages/QuizDetail';
 import RechargePaymentPage from './pages/RechargePaymentPage';
 import UserProfile from './pages/UserProfile';
 import Feedback from './pages/FeedBack';
+import Login from './pages/Login';
 
 const NotFoundPage = () => <div style={{ padding: 24 }}>404 - Trang không tìm thấy</div>;
 
@@ -33,13 +34,14 @@ const App: React.FC = () => {
       <Routes>
         {/* Quiz routes */}
         <Route
-          path={ROUTES.HOME.replace(':id', ':id')}
+          path={ROUTES.STUDENT}
           element={
             <LayoutQuiz>
               <StudentQuizPage />
             </LayoutQuiz>
           }
         />
+        <Route path={ROUTES.LOGIN} element={<Login />} />
 
         {/* Main layout routes */}
         <Route path="/" element={<StandardLayoutWrapper />}>

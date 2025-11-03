@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -7,18 +8,27 @@ import {
     BellOutlined,
     LogoutOutlined,
     SettingOutlined,
-    HeartFilled, // ⭐ 1. Thêm icon kim cương
+    HeartFilled,
+    LoginOutlined, // Thêm Icon Login
 } from '@ant-design/icons';
-import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag } from 'antd';
+import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag, message } from 'antd';
+import { Link } from 'react-router-dom'; // Thêm Link để điều hướng đến trang Login
 
 const { Header } = Layout;
 
-// --- Giả lập dữ liệu ---
-// Trong ứng dụng thực tế, dữ liệu này sẽ đến từ API hoặc state management
-const currentUser = {
+interface User {
+    id: string;
+    email: string;
+    name: string;
+    picture: string;
+}
+
+// --- Dữ liệu giả lập ---
+// Trong ứng dụng thực tế, dữ liệu này sẽ đến từ Context/Redux/zustand
+const mockUser = {
     name: 'Chubinbmt0202',
     avatarUrl: null,
-    diamondBalance: 0, // ⭐ 2. Thêm số dư kim cương cho người dùng
+    diamondBalance: 0, // Ví dụ: 1,250 Credit
 };
 const notificationCount = 5;
 const notifications = [
@@ -33,10 +43,22 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
+    const [user, setUser] = useState<User | null>(() => {
+        const storedUser = localStorage.getItem('user');
+        try {
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.error("Failed to parse user data from localStorage", e);
+            return null;
+        }
+    });
+
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'logout') {
-            console.log('Logging out...');
+            localStorage.removeItem('user');
+            setUser(null);
+            message.success('Đăng xuất thành công!');
         }
     };
 
@@ -62,6 +84,67 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
         </div>
     );
 
+    const renderAuthSection = () => {
+
+        if (user) {
+            // Hiển thị các mục khi ĐÃ đăng nhập
+            return (
+                <>
+                    {/* Nút Nâng cấp */}
+                    <Button type="primary" icon={<CrownOutlined />} className="bg-blue-500 hover:!bg-blue-600 hidden sm:flex items-center">
+                        <span className="ml-1">Nâng cấp</span>
+                    </Button>
+
+                    {/* Số dư Credit/Kim cương */}
+                    <Tag
+                        icon={<HeartFilled />}
+                        color="red"
+                        className="flex items-center cursor-pointer"
+                        style={{ padding: '6px 10px', fontSize: '14px', fontWeight: '500' }}
+                    >
+                        {mockUser.diamondBalance.toLocaleString()}
+                    </Tag>
+
+                    {/* Thông báo */}
+                    <Dropdown dropdownRender={() => notificationDropdownContent} trigger={['click']}>
+                        <Badge count={notificationCount} offset={[-5, 8]}>
+                            <Button
+                                type="text"
+                                shape="circle"
+                                icon={<BellOutlined style={{ fontSize: '18px' }} />}
+                                size="large"
+                            />
+                        </Badge>
+                    </Dropdown>
+
+                    {/* Avatar và Menu Người dùng */}
+                    <Dropdown menu={{ items: userMenu, onClick: handleMenuClick }} trigger={['click']}>
+                        <Avatar
+                            className="cursor-pointer bg-blue-500 flex items-center justify-center"
+                            src={user?.picture}
+                            icon={!user?.picture ? <UserOutlined /> : undefined}
+                        >
+                            {!user?.picture ? user?.name.charAt(0).toUpperCase() : null}
+                        </Avatar>
+                    </Dropdown>
+                </>
+            );
+        } else {
+            // Hiển thị nút ĐĂNG NHẬP khi CHƯA đăng nhập
+            return (
+                <Link to="/login">
+                    <Button
+                        type="primary"
+                        icon={<LoginOutlined />}
+                        className="bg-green-500 hover:bg-green-600"
+                    >
+                        Đăng nhập
+                    </Button>
+                </Link>
+            );
+        }
+    };
+
     return (
         <Header
             className="h-16 bg-white"
@@ -83,41 +166,8 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
                 />
 
                 <Space size="middle" align="center">
-                    {/* ⭐ 3. LOGIC HIỂN THỊ KIM CƯƠNG */}
-                    <Button type="primary" icon={<CrownOutlined />} className="bg-blue-500 hover:!bg-blue-600 hidden sm:flex items-center">
-                        <span className="ml-1">Nâng cấp</span>
-                    </Button>
-                    {currentUser.diamondBalance > -1 && (
-                        <Tag
-                            icon={<HeartFilled />}
-                            color="red"
-                            className="flex items-center cursor-pointer"
-                            style={{ padding: '6px 10px', fontSize: '14px', fontWeight: '500' }}
-                        >
-                            {/* Định dạng số cho dễ đọc, ví dụ: 1,250 */}
-                            {currentUser.diamondBalance.toLocaleString()}
-                        </Tag>
-                    )}
-                    <Dropdown dropdownRender={() => notificationDropdownContent} trigger={['click']}>
-                        <Badge count={notificationCount} offset={[-5, 8]}>
-                            <Button
-                                type="text"
-                                shape="circle"
-                                icon={<BellOutlined style={{ fontSize: '18px' }} />}
-                                size="large"
-                            />
-                        </Badge>
-                    </Dropdown>
-
-                    <Dropdown menu={{ items: userMenu, onClick: handleMenuClick }} trigger={['click']}>
-                        <Avatar
-                            className="cursor-pointer bg-blue-500 flex items-center justify-center"
-                            src={currentUser.avatarUrl}
-                            icon={!currentUser.avatarUrl ? <UserOutlined /> : undefined}
-                        >
-                            {!currentUser.avatarUrl ? currentUser.name.charAt(0).toUpperCase() : null}
-                        </Avatar>
-                    </Dropdown>
+                    {/* RENDER DỰA TRÊN TRẠNG THÁI ĐĂNG NHẬP */}
+                    {renderAuthSection()}
                 </Space>
             </div>
         </Header>
