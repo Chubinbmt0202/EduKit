@@ -16,7 +16,7 @@ const QuizActionsBar: React.FC<QuizActionsBarProps> = ({
     quizTitle = "Bộ đề: TOÁN - Bảng Cộng Qua 10"
 }) => {
     const [isVisibleLoginNoti, setIsVisibleLoginNoti] = useState(false);
-    const [user, setUser] = useState<User | null>(() => {
+    const [user] = useState<User | null>(() => {
         const storedUser = localStorage.getItem('user');
         try {
             return storedUser ? JSON.parse(storedUser) : null;

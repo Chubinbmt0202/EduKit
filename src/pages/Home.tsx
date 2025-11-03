@@ -32,7 +32,7 @@ const Home: React.FC = () => {
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
-    const [user, setUser] = useState<User | null>(() => {
+    const [user] = useState<User | null>(() => {
         const storedUser = localStorage.getItem('user');
         console.log('Stored user data:', storedUser);
         try {
