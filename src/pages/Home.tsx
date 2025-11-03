@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * File: chubinbmt0202/edukit/EduKit-632165e1b9a4407a0f06213c87701ba0223a5e13/src/pages/Home.tsx
@@ -28,7 +29,6 @@ const Home: React.FC = () => {
 
     const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
-
     const uploadProps: UploadProps = {
         name: 'file',
         multiple: true,

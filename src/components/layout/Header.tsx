@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -10,10 +11,17 @@ import {
     HeartFilled,
     LoginOutlined, // Thêm Icon Login
 } from '@ant-design/icons';
-import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag } from 'antd';
+import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag, message } from 'antd';
 import { Link } from 'react-router-dom'; // Thêm Link để điều hướng đến trang Login
 
 const { Header } = Layout;
+
+interface User {
+    id: string;
+    email: string;
+    name: string;
+    picture: string;
+}
 
 // --- Dữ liệu giả lập ---
 // Trong ứng dụng thực tế, dữ liệu này sẽ đến từ Context/Redux/zustand
@@ -35,14 +43,22 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
-    // ⭐ GIẢ LẬP TRẠNG THÁI ĐĂNG NHẬP
-    // Trong thực tế, bạn sẽ dùng useContext hoặc useSelector để lấy trạng thái này
-    const isLoggedIn = mockUser.diamondBalance > 0; // Giả sử nếu có Credit > 0 là đã đăng nhập
+    const [user, setUser] = useState<User | null>(() => {
+        const storedUser = localStorage.getItem('user');
+        try {
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.error("Failed to parse user data from localStorage", e);
+            return null;
+        }
+    });
+
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'logout') {
-            console.log('Logging out...');
-            // Thêm logic xóa token/user từ localStorage (storageService.remove('token'))
+            localStorage.removeItem('user');
+            setUser(null);
+            message.success('Đăng xuất thành công!');
         }
     };
 
@@ -69,7 +85,8 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
     );
 
     const renderAuthSection = () => {
-        if (isLoggedIn) {
+
+        if (user) {
             // Hiển thị các mục khi ĐÃ đăng nhập
             return (
                 <>
@@ -104,10 +121,10 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
                     <Dropdown menu={{ items: userMenu, onClick: handleMenuClick }} trigger={['click']}>
                         <Avatar
                             className="cursor-pointer bg-blue-500 flex items-center justify-center"
-                            src={mockUser.avatarUrl}
-                            icon={!mockUser.avatarUrl ? <UserOutlined /> : undefined}
+                            src={user?.picture}
+                            icon={!user?.picture ? <UserOutlined /> : undefined}
                         >
-                            {!mockUser.avatarUrl ? mockUser.name.charAt(0).toUpperCase() : null}
+                            {!user?.picture ? user?.name.charAt(0).toUpperCase() : null}
                         </Avatar>
                     </Dropdown>
                 </>

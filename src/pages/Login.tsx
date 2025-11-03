@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
-
-import { Button, Checkbox, Form, Grid, Input, theme, Typography } from "antd";
-
+// Đã thêm Divider vào import từ antd
+import { Button, Checkbox, Form, Grid, Input, theme, Typography, Divider } from "antd";
 import { LockOutlined, MailOutlined } from "@ant-design/icons";
+import { GoogleLogin } from '@react-oauth/google';
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
@@ -12,9 +13,13 @@ const { Text, Title, Link } = Typography;
 export default function Login() {
     const { token } = useToken();
     const screens = useBreakpoint();
+    const navigate = useNavigate();
+
+    // Loại bỏ hàm handleLoginGoogle không dùng đến khi sử dụng <GoogleLogin />
 
     const onFinish = (values: any) => {
         console.log("Received values of form: ", values);
+        // Ở đây, bạn sẽ gửi email/password lên backend để đăng nhập
     };
 
     const styles = {
@@ -46,6 +51,13 @@ export default function Login() {
         },
         title: {
             fontSize: screens.md ? token.fontSizeHeading2 : token.fontSizeHeading3
+        },
+        // Thêm style cho phần Google Login để căn giữa
+        googleLoginContainer: {
+            display: 'flex',
+            justifyContent: 'center', // Căn giữa nút Google
+            marginTop: token.marginLG,
+            marginBottom: token.marginLG,
         }
     };
 
@@ -60,6 +72,7 @@ export default function Login() {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
+                        {/* Giữ nguyên icon */}
                         <rect x="0.464294" width="24" height="24" rx="4.8" fill="#1890FF" />
                         <path
                             d="M14.8643 3.6001H20.8643V9.6001H14.8643V3.6001Z"
@@ -75,12 +88,12 @@ export default function Login() {
                         />
                     </svg>
 
-                    <Title style={styles.title}>Sign in</Title>
+                    <Title style={styles.title}>Đăng nhập</Title>
                     <Text style={styles.text}>
-                        Welcome back to AntBlocks UI! Please enter your details below to
-                        sign in.
+                        Chào mừng bạn trở lại với EduKit! Vui lòng nhập thông tin của bạn bên dưới để đăng nhập.
                     </Text>
                 </div>
+                {/* FORM ĐĂNG NHẬP EMAIL/PASSWORD */}
                 <Form
                     name="normal_login"
                     initialValues={{
@@ -96,7 +109,7 @@ export default function Login() {
                             {
                                 type: "email",
                                 required: true,
-                                message: "Please input your Email!",
+                                message: "Vui lòng điền Email của bạn",
                             },
                         ]}
                     >
@@ -110,7 +123,7 @@ export default function Login() {
                         rules={[
                             {
                                 required: true,
-                                message: "Please input your Password!",
+                                message: "Vui lòng điền mật khẩu của bạn",
                             },
                         ]}
                     >
@@ -122,22 +135,48 @@ export default function Login() {
                     </Form.Item>
                     <Form.Item>
                         <Form.Item name="remember" valuePropName="checked" noStyle>
-                            <Checkbox>Remember me</Checkbox>
+                            <Checkbox>Ghi nhớ mật khẩu</Checkbox>
                         </Form.Item>
                         <a style={styles.forgotPassword} href="">
-                            Forgot password?
+                            Quên mật khẩu?
                         </a>
                     </Form.Item>
                     <Form.Item style={{ marginBottom: "0px" }}>
                         <Button block type="primary" htmlType="submit">
-                            Log in
+                            Đăng nhập
                         </Button>
                         <div style={styles.footer}>
-                            <Text style={styles.text}>Don't have an account?</Text>{" "}
-                            <Link href="">Sign up now</Link>
+                            <Text style={styles.text}>Bạn chưa có tài khoản?</Text>{" "}
+                            <Link href="">Đăng ký ngay</Link>
                         </div>
                     </Form.Item>
                 </Form>
+
+                {/* PHÂN CÁCH VÀ GOOGLE LOGIN */}
+                <Divider>Hoặc tiếp tục với</Divider>
+
+                <div style={styles.googleLoginContainer}>
+                    {/* Component GoogleLogin hiển thị nút Google mặc định */}
+                    <GoogleLogin
+                        onSuccess={(credentialResponse) => {
+                            const ID_TOKEN = credentialResponse.credential;
+                            axios.post('http://localhost:5000/api/auth/google', {
+                                token: ID_TOKEN
+                            }, { withCredentials: true }).then(response => {
+
+                                const { user } = response.data;
+                                localStorage.setItem('user', JSON.stringify(user));
+                                console.log("Đăng nhập thành công:", response.data);
+                                // chuyển hướng sang trang home
+                                navigate('/');
+                            }).catch(error => {
+                                console.error("Lỗi đăng nhập:", error);
+                            });
+                            // TODO: Gửi credentialResponse.credential lên backend để xác thực
+                        }}
+                        onError={() => console.log("đăng nhập không thành công")}
+                    />
+                </div>
             </div>
         </section>
     );
