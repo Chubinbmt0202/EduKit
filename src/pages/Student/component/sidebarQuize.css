@@ -4,9 +4,12 @@
 }
 
 .quiz-sidebar-tabs .ant-tabs-nav {
-    /* Loại bỏ khoảng trắng/margin mặc định của phần đầu Tabs */
-    margin: 0 !important;
-    height: 500px !important;
+    height: 100% !important;
+    /* Thay đổi giá trị cứng 500px */
+    max-height: 80vh;
+    /* Giới hạn chiều cao tối đa của thanh Tabs nav */
+    overflow-y: auto;
+    /* Cho phép thanh cuộn nếu danh sách tab quá dài */
 }
 
 .quiz-sidebar-tabs .ant-tabs-tab {

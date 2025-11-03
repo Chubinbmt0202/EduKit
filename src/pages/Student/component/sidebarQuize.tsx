@@ -92,7 +92,7 @@ const SidebarQuiz: React.FC = () => {
 
     return (
         // 1. Container chính: Cố định, ở lề trái, và căn giữa theo chiều dọc
-        <div className="fixed left-0 top-[47%] w-[80%] mx-auto transform -translate-y-1/2 z-40 sm:p-4 hidden md:block">
+        <div className="fixed left-0 top-1/2 transform -translate-y-1/2 z-40 sm:p-4 hidden md:block" style={{ width: '80%' }}>
 
             <Tabs
                 className="quiz-sidebar-tabs"

@@ -4,6 +4,7 @@ export const ROUTES = {
     STUDENT: '/student',
     SEARCH: '/search',
     HISTORY: '/history',
+    LOGIN: '/login',
     FOLDERS: '/folders',
     FOLDERS_QUIZZES: (id: string) => `/folders/quizzes/${id}`,
     GUIDES: '/guides',
