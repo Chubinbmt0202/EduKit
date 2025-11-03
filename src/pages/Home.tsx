@@ -9,6 +9,8 @@ import type { UploadProps, UploadFile } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import ProcessingModal from '../components/features/lectures/ProcessingModal';
 import InsufficientFundsModal from '../components/features/lectures/InsufficientFundsModal';
+import LoginNotiModal from '../components/features/lectures/LoginNotiModal';
+import type { User } from '../types/user.types';
 
 const { Paragraph, Title } = Typography;
 const { Dragger } = Upload;
@@ -26,9 +28,21 @@ const normFile = (e: any) => {
 const Home: React.FC = () => {
     const [form] = Form.useForm();
     const [fileList, setFileList] = useState<UploadFile[]>([]);
-
     const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
+    const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
+
+    const [user, setUser] = useState<User | null>(() => {
+        const storedUser = localStorage.getItem('user');
+        console.log('Stored user data:', storedUser);
+        try {
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.error("Failed to parse user data from localStorage", e);
+            return null;
+        }
+    });
+
     const uploadProps: UploadProps = {
         name: 'file',
         multiple: true,
@@ -58,26 +72,28 @@ const Home: React.FC = () => {
 
     // Hàm xử lý khi nhấn nút TẠO BỘ CÂU HỎI
     const handleCreateQuestions = async (values: any) => {
-
-        // ⭐ BƯỚC 3: XÓA logic kiểm tra thủ công. Form sẽ kiểm tra thay. ⭐
-        // if (fileList.length === 0) { ... } // Đã được loại bỏ
-
-        const allData = {
-            ...values,
-            // Sử dụng fileList từ state để đảm bảo lấy đúng trạng thái mới nhất
-            files: fileList.map(f => f.name),
-        };
-        console.log('Submitting data:', allData);
-
-        // Logic kiểm tra số dư và hiển thị modal
-        const hasSufficientFunds = Math.random() > 0.5;
-        if (hasSufficientFunds) {
-            setIsProcessModalVisible(true);
-            message.info('Yêu cầu tạo bộ câu hỏi đang được xử lý...');
+        if (!user) {
+            setIsLoginModalVisible(true);
+            return;
         } else {
-            setIsFundsModalVisible(true);
-            message.warning('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
+            const allData = {
+                ...values,
+                // Sử dụng fileList từ state để đảm bảo lấy đúng trạng thái mới nhất
+                files: fileList.map(f => f.name),
+            };
+            console.log('Submitting data:', allData);
+
+            // Logic kiểm tra số dư và hiển thị modal
+            const hasSufficientFunds = Math.random() > 0.5;
+            if (hasSufficientFunds) {
+                setIsProcessModalVisible(true);
+                message.info('Yêu cầu tạo bộ câu hỏi đang được xử lý...');
+            } else {
+                setIsFundsModalVisible(true);
+                message.warning('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
+            }
         }
+
     };
 
     return (
@@ -185,6 +201,8 @@ const Home: React.FC = () => {
 
             <ProcessingModal isVisible={isProcessModalVisible} onClose={handleCloseProcessModal} />
             <InsufficientFundsModal isVisible={isFundsModalVisible} onClose={handleCloseFundsModal} onNavigateToTopUp={handleTopUp} />
+            {/* Modal thông báo đăng nhập */}
+            <LoginNotiModal isVisible={isLoginModalVisible} onClose={() => setIsLoginModalVisible(false)} onNavigateToTopUp={() => { }} />
         </div>
     );
 };

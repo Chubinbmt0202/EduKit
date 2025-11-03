@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/features/quizes/QuizActionsBar.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Space, Tag } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
+import type { User } from '../../../types/user.types';
+import LoginNotiModal from '../lectures/LoginNotiModal';
 
 interface QuizActionsBarProps {
     // Thêm các props cần thiết, ví dụ như tiêu đề quiz hoặc trạng thái loading
@@ -10,9 +13,25 @@ interface QuizActionsBarProps {
 }
 
 const QuizActionsBar: React.FC<QuizActionsBarProps> = ({
-    quizTitle = "Bộ đề: TOÁN - Bảng Cộng Qua 10",
-    onPublish
+    quizTitle = "Bộ đề: TOÁN - Bảng Cộng Qua 10"
 }) => {
+    const [isVisibleLoginNoti, setIsVisibleLoginNoti] = useState(false);
+    const [user, setUser] = useState<User | null>(() => {
+        const storedUser = localStorage.getItem('user');
+        try {
+            return storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.error("Failed to parse user data from localStorage", e);
+            return null;
+        }
+    });
+
+    const handlePublish = () => {
+        if (!user) {
+            setIsVisibleLoginNoti(true);
+            return;
+        }
+    }
     return (
         <div className="flex justify-between items-center mb-4">
             <Space size="large">
@@ -23,10 +42,14 @@ const QuizActionsBar: React.FC<QuizActionsBarProps> = ({
             <Button
                 type="primary"
                 icon={<SendOutlined />}
-                onClick={onPublish}
+                onClick={handlePublish}
             >
                 Xuất bản Bộ đề
             </Button>
+
+            <LoginNotiModal isVisible={isVisibleLoginNoti} onClose={() => setIsVisibleLoginNoti(false)} onNavigateToTopUp={function (): void {
+                throw new Error('Function not implemented.');
+            }} />
         </div>
     );
 };
