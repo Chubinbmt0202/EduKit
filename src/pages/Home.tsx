@@ -10,13 +10,14 @@ import { InboxOutlined } from '@ant-design/icons';
 import ProcessingModal from '../components/features/lectures/ProcessingModal';
 import InsufficientFundsModal from '../components/features/lectures/InsufficientFundsModal';
 import LoginNotiModal from '../components/features/lectures/LoginNotiModal';
-import type { User } from '../types/user.types';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const { Paragraph, Title } = Typography;
 const { Dragger } = Upload;
 
 const questionTypeOptions = ['Trắc nghiệm', 'Đúng sai', 'Điền từ', 'Ghép nối', 'Thẻ ghi nhớ', 'Phân loại'];
-
+const COST_PER_QUIZ = 1; // Giả sử mỗi câu hỏi tốn 1 đơn vị tiền
 // --- Helper function để chuẩn hóa giá trị từ Upload component ---
 const normFile = (e: any) => {
     if (Array.isArray(e)) {
@@ -31,17 +32,9 @@ const Home: React.FC = () => {
     const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-
-    const [user] = useState<User | null>(() => {
-        const storedUser = localStorage.getItem('user');
-        console.log('Stored user data:', storedUser);
-        try {
-            return storedUser ? JSON.parse(storedUser) : null;
-        } catch (e) {
-            console.error("Failed to parse user data from localStorage", e);
-            return null;
-        }
-    });
+    const { user, credits, setCredits } = useAuth();
+    console.log('user in Home:', user);
+    console.log('credits in Home:', credits);
 
     const uploadProps: UploadProps = {
         name: 'file',
@@ -75,25 +68,62 @@ const Home: React.FC = () => {
         if (!user) {
             setIsLoginModalVisible(true);
             return;
-        } else {
-            const allData = {
-                ...values,
-                // Sử dụng fileList từ state để đảm bảo lấy đúng trạng thái mới nhất
-                files: fileList.map(f => f.name),
-            };
-            console.log('Submitting data:', allData);
-
-            // Logic kiểm tra số dư và hiển thị modal
-            const hasSufficientFunds = Math.random() > 0.5;
-            if (hasSufficientFunds) {
-                setIsProcessModalVisible(true);
-                message.info('Yêu cầu tạo bộ câu hỏi đang được xử lý...');
-            } else {
-                setIsFundsModalVisible(true);
-                message.warning('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
-            }
         }
 
+        // 1. KIỂM TRA CREDITS TRÊN FRONTEND (Tối ưu trải nghiệm)
+        if (credits < COST_PER_QUIZ) {
+            setIsFundsModalVisible(true);
+            alert('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
+            return;
+        }
+
+        // Bắt đầu xử lý (hiển thị modal)
+        setIsProcessModalVisible(true);
+        message.info('Đang gửi yêu cầu tạo bộ câu hỏi...');
+
+
+        const allData = {
+            ...values,
+            // Chuyển danh sách file sang format đơn giản (chỉ tên hoặc ID nếu có)
+            files: fileList.map(f => ({ name: f.name, uid: f.uid })),
+        };
+
+        try {
+            // 2. GỌI API BACKEND
+            const response = await axios.post(`http://localhost:5000/api/users/quizzes`, allData, {
+                withCredentials: true // Gửi cookie xác thực
+            });
+
+            if (response.data.success) {
+                // 3. Cập nhật Credits trong Context
+                const newCredits = response.data.newCredits;
+                setCredits(newCredits);
+                // Giữ modal xử lý mở (để chờ kết quả AI)
+                alert(`Đã trừ ${COST_PER_QUIZ} Credit. Quá trình tạo Quiz đang chạy ngầm...`);
+            } else {
+                // Nếu backend trả về 200 nhưng success: false (hiếm)
+                setIsProcessModalVisible(false);
+                message.error(response.data.message || 'Lỗi không xác định khi tạo Quiz.');
+            }
+
+        } catch (error) {
+            setIsProcessModalVisible(false); // Đóng modal nếu có lỗi
+
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === 403 && error.response.data.message === 'Insufficient funds') {
+                    // Lỗi không đủ Credits (Xác nhận từ Backend)
+                    setIsFundsModalVisible(true);
+                    message.warning('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
+                } else if (error.response.status === 401) {
+                    message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+                    // Bạn nên gọi hàm logout từ Context ở đây
+                } else {
+                    message.error(`Lỗi hệ thống: ${error.response.data.message || 'Vui lòng thử lại.'}`);
+                }
+            } else {
+                message.error('Lỗi kết nối mạng hoặc server không phản hồi.');
+            }
+        }
     };
 
     return (
