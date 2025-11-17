@@ -5,6 +5,7 @@ import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import { GoogleLogin } from '@react-oauth/google';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
@@ -14,6 +15,7 @@ export default function Login() {
     const { token } = useToken();
     const screens = useBreakpoint();
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     // Loại bỏ hàm handleLoginGoogle không dùng đến khi sử dụng <GoogleLogin />
 
@@ -166,8 +168,8 @@ export default function Login() {
                             }, { withCredentials: true }).then(response => {
 
                                 const { user } = response.data;
-                                localStorage.setItem('user', JSON.stringify(user));
-                                console.log("Đăng nhập thành công:", response.data);
+                                console.log("Đăng nhập thành công:", user);
+                                login(user, 0);
                                 // chuyển hướng sang trang home
                                 navigate('/');
                             }).catch(error => {

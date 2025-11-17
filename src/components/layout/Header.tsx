@@ -14,7 +14,6 @@ import {
 } from '@ant-design/icons';
 import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag, message } from 'antd';
 import { Link } from 'react-router-dom'; // Thêm Link để điều hướng đến trang Login
-import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 const { Header } = Layout;
 
@@ -33,6 +32,11 @@ interface CustomHeaderProps {
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
     const { user, credits, logout } = useAuth();
 
+    // render page when user is logged in or not
+    useEffect(() => {
+        // render something based on user state
+        console.log('User state changed: ', user);
+    }, [user]);
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'logout') {
