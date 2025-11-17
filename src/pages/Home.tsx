@@ -32,7 +32,7 @@ const Home: React.FC = () => {
     const [isProcessModalVisible, setIsProcessModalVisible] = useState(false);
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-    const { user, credits, setCredits } = useAuth();
+    const { user, credits, updateCredits } = useAuth();
     console.log('user in Home:', user);
     console.log('credits in Home:', credits);
 
@@ -78,7 +78,7 @@ const Home: React.FC = () => {
         }
 
         // Bắt đầu xử lý (hiển thị modal)
-        setIsProcessModalVisible(true);
+        // setIsProcessModalVisible(true);
         message.info('Đang gửi yêu cầu tạo bộ câu hỏi...');
 
 
@@ -86,20 +86,27 @@ const Home: React.FC = () => {
             ...values,
             // Chuyển danh sách file sang format đơn giản (chỉ tên hoặc ID nếu có)
             files: fileList.map(f => ({ name: f.name, uid: f.uid })),
+            amount: COST_PER_QUIZ
         };
 
         try {
             // 2. GỌI API BACKEND
-            const response = await axios.post(`http://localhost:5000/api/users/quizzes`, allData, {
+            const response = await axios.post(`http://localhost:5000/api/users/deduct-credits`, allData, {
                 withCredentials: true // Gửi cookie xác thực
             });
 
             if (response.data.success) {
                 // 3. Cập nhật Credits trong Context
-                const newCredits = response.data.newCredits;
-                setCredits(newCredits);
-                // Giữ modal xử lý mở (để chờ kết quả AI)
-                alert(`Đã trừ ${COST_PER_QUIZ} Credit. Quá trình tạo Quiz đang chạy ngầm...`);
+                const creditsRes = await axios.get(`http://localhost:5000/api/users/credits`, {
+                    withCredentials: true
+                });
+
+                console.log('Updated credits from backend:', creditsRes.data);
+                const newCredits = creditsRes.data.credits;
+                if (typeof newCredits === 'number') {
+                    // Guard the call in case updateCredits is undefined
+                    updateCredits?.(newCredits);
+                }
             } else {
                 // Nếu backend trả về 200 nhưng success: false (hiếm)
                 setIsProcessModalVisible(false);
