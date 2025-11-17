@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react';
+import React, { useEffect, } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -13,23 +14,9 @@ import {
 } from '@ant-design/icons';
 import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag, message } from 'antd';
 import { Link } from 'react-router-dom'; // Thêm Link để điều hướng đến trang Login
-
+import { useAuth } from '../../context/AuthContext';
 const { Header } = Layout;
 
-interface User {
-    id: string;
-    email: string;
-    name: string;
-    picture: string;
-}
-
-// --- Dữ liệu giả lập ---
-// Trong ứng dụng thực tế, dữ liệu này sẽ đến từ Context/Redux/zustand
-const mockUser = {
-    name: 'Chubinbmt0202',
-    avatarUrl: null,
-    diamondBalance: 0, // Ví dụ: 1,250 Credit
-};
 const notificationCount = 5;
 const notifications = [
     'Bạn có một bài tập mới.',
@@ -43,21 +30,18 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
-    const [user, setUser] = useState<User | null>(() => {
-        const storedUser = localStorage.getItem('user');
-        try {
-            return storedUser ? JSON.parse(storedUser) : null;
-        } catch (e) {
-            console.error("Failed to parse user data from localStorage", e);
-            return null;
-        }
-    });
+    const { user, credits, logout } = useAuth();
 
+    // render page when user is logged in or not
+    useEffect(() => {
+        // render something based on user state
+        console.log('User state changed: ', user);
+    }, [user]);
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'logout') {
             localStorage.removeItem('user');
-            setUser(null);
+            logout();
             message.success('Đăng xuất thành công!');
         }
     };
@@ -102,7 +86,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) 
                         className="flex items-center cursor-pointer"
                         style={{ padding: '6px 10px', fontSize: '14px', fontWeight: '500' }}
                     >
-                        {mockUser.diamondBalance.toLocaleString()}
+                        {credits}
                     </Tag>
 
                     {/* Thông báo */}
