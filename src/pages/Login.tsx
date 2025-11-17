@@ -160,6 +160,7 @@ export default function Login() {
                     <GoogleLogin
                         onSuccess={(credentialResponse) => {
                             const ID_TOKEN = credentialResponse.credential;
+                            console.log("ID_TOKEN:", ID_TOKEN);
                             axios.post('http://localhost:5000/api/auth/google', {
                                 token: ID_TOKEN
                             }, { withCredentials: true }).then(response => {

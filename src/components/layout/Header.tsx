@@ -15,28 +15,9 @@ import {
 import { Button, Layout, Avatar, Dropdown, type MenuProps, Badge, Space, List, Tag, message } from 'antd';
 import { Link } from 'react-router-dom'; // Thêm Link để điều hướng đến trang Login
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 const { Header } = Layout;
 
-interface User {
-    id: string;
-    email: string;
-    name: string;
-    picture: string;
-}
-
-// --- Dữ liệu giả lập ---
-// Trong ứng dụng thực tế, dữ liệu này sẽ đến từ Context/Redux/zustand
-// API get credits hoặc user profile
-const storedUser = localStorage.getItem('user');
-const userID = storedUser ? JSON.parse(storedUser).id : null;
-console.log("User ID from localStorage:", userID);
-
-
-const mockUser = {
-    name: 'Chubinbmt0202',
-    avatarUrl: null,
-    diamondBalance: 0, // Ví dụ: 1,250 Credit
-};
 const notificationCount = 5;
 const notifications = [
     'Bạn có một bài tập mới.',
@@ -50,38 +31,13 @@ interface CustomHeaderProps {
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ collapsed, setCollapsed }) => {
-    const [credits, setCredits] = useState<number>(0);
-    const [user, setUser] = useState<User | null>(() => {
-        const storedUser = localStorage.getItem('user');
-        try {
-            return storedUser ? JSON.parse(storedUser) : null;
-        } catch (e) {
-            console.error("Failed to parse user data from localStorage", e);
-            return null;
-        }
-    });
-    useEffect(() => {
-        console.log("User ID from localStorage inside useEffect:", storedUser ? JSON.parse(storedUser).id : null);
-        if (userID) {
-            async function fetchUserData() {
-                try {
-                    const response = await axios.get(`http://localhost:5000/api/users/credits`, {
-                        withCredentials: true
-                    });
-                    console.log("Fetched user data:", response.data);
-                    setCredits(response.data.credits);
-                } catch (error) {
-                    console.error("Error fetching user data:", error);
-                }
-            }
-            fetchUserData();
-        }
-    }, [userID]);
+    const { user, credits, logout } = useAuth();
+
 
     const handleMenuClick: MenuProps['onClick'] = (e) => {
         if (e.key === 'logout') {
             localStorage.removeItem('user');
-            setUser(null);
+            logout();
             message.success('Đăng xuất thành công!');
         }
     };
