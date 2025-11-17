@@ -3,14 +3,13 @@
 /*
  * File: chubinbmt0202/edukit/EduKit-632165e1b9a4407a0f06213c87701ba0223a5e13/src/pages/Home.tsx
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Typography, message, Upload, Button, Input, Checkbox, Radio, Form, Row, Col } from 'antd';
 import type { UploadProps, UploadFile } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import ProcessingModal from '../components/features/lectures/ProcessingModal';
 import InsufficientFundsModal from '../components/features/lectures/InsufficientFundsModal';
 import LoginNotiModal from '../components/features/lectures/LoginNotiModal';
-import type { User } from '../types/user.types';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
