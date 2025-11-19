@@ -33,9 +33,6 @@ const Home: React.FC = () => {
     const [isFundsModalVisible, setIsFundsModalVisible] = useState(false);
     const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
     const { user, credits, updateCredits } = useAuth();
-    console.log('user in Home:', user);
-    console.log('credits in Home:', credits);
-
     const uploadProps: UploadProps = {
         name: 'file',
         multiple: true,
@@ -60,11 +57,38 @@ const Home: React.FC = () => {
     const handleCloseFundsModal = () => setIsFundsModalVisible(false);
     const handleTopUp = () => {
         setIsFundsModalVisible(false);
-        message.info('Đang chuyển đến trang nạp tiền...');
+        // Chuyển hướng đến trang nạp tiền
+        console.log('Navigate to Top-Up Page');
     };
 
     // Hàm xử lý khi nhấn nút TẠO BỘ CÂU HỎI
     const handleCreateQuestions = async (values: any) => {
+        const { files, ...otherValues } = values;
+
+        const formData = new FormData();
+        // thêm các trường khác vào formData
+        Object.keys(otherValues).forEach(key => {
+            const value = otherValues[key];
+            if (Array.isArray(value)) {
+                // Xử lý các mảng (như questionTypes)
+                value.forEach(item => formData.append(key, item));
+            } else {
+                formData.append(key, value);
+            }
+        });
+
+        formData.append('amount', COST_PER_QUIZ.toString());
+
+        if (fileList.length > 0) {
+            const file = fileList[0];
+            formData.append('document', file.originFileObj as Blob, file.name);
+        } else {
+            message.error('Vui lòng tải lên ít nhất một tệp tài liệu.');
+            return;
+        }
+
+        console.log('Form values:', values);
+
         if (!user) {
             setIsLoginModalVisible(true);
             return;
@@ -73,14 +97,11 @@ const Home: React.FC = () => {
         // 1. KIỂM TRA CREDITS TRÊN FRONTEND (Tối ưu trải nghiệm)
         if (credits < COST_PER_QUIZ) {
             setIsFundsModalVisible(true);
-            alert('Tài khoản của bạn không đủ để thực hiện giao dịch này!');
             return;
         }
 
         // Bắt đầu xử lý (hiển thị modal)
         // setIsProcessModalVisible(true);
-        message.info('Đang gửi yêu cầu tạo bộ câu hỏi...');
-
 
         const allData = {
             ...values,
@@ -94,6 +115,12 @@ const Home: React.FC = () => {
             const response = await axios.post(`http://localhost:5000/api/users/deduct-credits`, allData, {
                 withCredentials: true // Gửi cookie xác thực
             });
+
+            const responseCreateQuiz = await axios.post(`http://localhost:5000/api/quizzes/create`, formData, {
+                withCredentials: true // Gửi cookie xác thực
+            });
+
+            console.log('Quiz creation response:', responseCreateQuiz);
 
             if (response.data.success) {
                 // 3. Cập nhật Credits trong Context
@@ -213,13 +240,13 @@ const Home: React.FC = () => {
                                 <Checkbox.Group options={questionTypeOptions} />
                             </Form.Item>
 
-                            <Form.Item name="difficulty" label={<Title level={5}>Mức độ khó</Title>} initialValue="mix">
+                            <Form.Item name="difficulty" label={<Title level={5}>Mức độ khó</Title>} initialValue="tron">
                                 <Radio.Group buttonStyle="solid">
-                                    <Radio.Button value="easy">Nhận biết</Radio.Button>
-                                    <Radio.Button value="medium">Thông hiểu</Radio.Button>
-                                    <Radio.Button value="hard">Vận dụng thấp</Radio.Button>
-                                    <Radio.Button value="very_hard">Vận dụng cao</Radio.Button>
-                                    <Radio.Button value="mix">Xáo trộn</Radio.Button>
+                                    <Radio.Button value="nhanbiet">Nhận biết</Radio.Button>
+                                    <Radio.Button value="thonghieu">Thông hiểu</Radio.Button>
+                                    <Radio.Button value="vandungthap">Vận dụng thấp</Radio.Button>
+                                    <Radio.Button value="vandungcao">Vận dụng cao</Radio.Button>
+                                    <Radio.Button value="tron">Xáo trộn</Radio.Button>
                                 </Radio.Group>
                             </Form.Item>
 
