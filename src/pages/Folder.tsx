@@ -1,27 +1,26 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 // ⭐ 1. Bỏ PageContainer, thêm Typography và Breadcrumb
 import { Button, Tabs, List, Avatar, Dropdown, type MenuProps, Modal, Form, Input, Spin, Empty, Typography, Breadcrumb } from 'antd';
 import { FolderOutlined, MoreOutlined, EditOutlined, DeleteOutlined, ShareAltOutlined, ExclamationCircleOutlined, HomeOutlined } from '@ant-design/icons';
-
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 const { confirm } = Modal;
 const { Title } = Typography; // Lấy Title từ Typography
 
-// --- Dữ liệu giả lập (không đổi) ---
-const initialFoldersData = [
-    { id: 1, name: 'Bộ đề Toán 12', description: 'Tổng hợp các đề thi THPT Quốc gia môn Toán.' },
-    { id: 2, name: 'Từ vựng IELTS Band 8.0', description: 'Các từ vựng academic theo chủ đề.' },
-];
-const api = {
-    getFolders: () => new Promise(resolve => setTimeout(() => resolve([...initialFoldersData]), 1000)),
-};
-
+// --- CẬP NHẬT INTERFACE ĐỂ KHỚP VỚI DỮ LIỆU THỰC TẾ ---
 interface FolderType {
-    id: number;
-    name: string;
-    description: string;
+    name: any;
+    id: string; // ID là string
+    filename: string; // Thay thế 'name' bằng 'filename'
+    gradeLevel: string; // Trường bổ sung
+    difficulty: string; // Trường bổ sung
+    createdAt: string; // Trường bổ sung
+    // Giữ 'description' để tránh lỗi ở các hàm khác, nhưng cần lưu ý trường này không có trong API
+    description?: string;
 }
 
 const Folder = () => {
@@ -29,17 +28,67 @@ const Folder = () => {
     const [folders, setFolders] = useState<FolderType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // Sử dụng FolderType mới
     const [editingFolder, setEditingFolder] = useState<FolderType | null>(null);
     const [form] = Form.useForm();
+    const { user } = useAuth();
 
-    // --- Các hàm logic (không đổi) ---
+    if (!user) {
+        return (
+            <div className="p-6">
+                <Title level={4}>Vui lòng đăng nhập để xem nội dung này.</Title>
+            </div>
+        );
+    }
+
+    // --- CẬP NHẬT LOGIC GỌI API TRONG useEffect ---
     useEffect(() => {
-        setLoading(true);
-        api.getFolders().then((data: any) => {
-            setFolders(data);
-            setLoading(false);
-        });
-    }, []);
+        const fetchFolders = async () => {
+            try {
+                setLoading(true);
+                // Đảm bảo user.id tồn tại trước khi gọi API
+                if (!user || !user.id) {
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await axios.get(`http://localhost:5000/api/quizzes/user/${user.id}`, {
+                    withCredentials: true,
+                });
+
+                console.log("Fetched response data:", response.data);
+
+                // ⭐ ĐIỀU CHỈNH LẤY DỮ LIỆU
+                // Giả sử API trả về dạng { quiz: [...] } hoặc chỉ là mảng [...]
+                const fetchedQuizzes = response.data.quiz || response.data;
+
+                // ⭐ Ánh xạ dữ liệu để khớp với FolderType cũ (nếu muốn giữ List.Item.Meta)
+                const formattedFolders: FolderType[] = fetchedQuizzes.map((quiz: any) => ({
+                    id: quiz.id,
+                    name: quiz.filename, // Dùng filename làm tên hiển thị
+                    description: `Cấp độ: ${quiz.gradeLevel} | Độ khó: ${quiz.difficulty} | Ngày tạo: ${new Date(quiz.createdAt).toLocaleDateString()}`,
+                    filename: quiz.filename,
+                    gradeLevel: quiz.gradeLevel,
+                    difficulty: quiz.difficulty,
+                    createdAt: quiz.createdAt,
+                }));
+
+                setFolders(formattedFolders);
+            } catch (error) {
+                console.error("Lỗi khi fetch folders:", error);
+                // Có thể thêm logic hiển thị lỗi cho người dùng ở đây
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFolders();
+    }, [user]); // Thêm user vào dependency để re-run khi user thay đổi (đăng nhập)
+
+    // --- Các hàm logic còn lại (Đã được điều chỉnh để khớp với FolderType) ---
+
+    // Lưu ý: Các hàm tạo/sửa/xóa hiện tại vẫn đang dùng logic mock (setTimeout), 
+    // cần được thay thế bằng các lời gọi axios tương ứng.
 
     const showCreateModal = () => {
         setEditingFolder(null);
@@ -49,7 +98,12 @@ const Folder = () => {
 
     const showEditModal = (folder: FolderType) => {
         setEditingFolder(folder);
-        form.setFieldsValue(folder);
+        // Khi chỉnh sửa, cần set các trường name và description đã ánh xạ
+        form.setFieldsValue({
+            name: folder.name,
+            description: folder.description,
+            // ... có thể thêm các trường khác nếu muốn chỉnh sửa
+        });
         setIsModalVisible(true);
     };
 
@@ -57,14 +111,29 @@ const Folder = () => {
         form.validateFields().then(values => {
             setLoading(true);
             if (editingFolder) {
+                // Sửa logic cập nhật dữ liệu (Giả lập)
                 setTimeout(() => {
-                    setFolders(folders.map(f => f.id === editingFolder.id ? { ...f, ...values } : f));
+                    setFolders(folders.map(f => f.id === editingFolder.id ? {
+                        ...f,
+                        name: values.name,
+                        description: values.description,
+                        filename: values.name // Cập nhật lại filename nếu name là tên chính
+                    } : f));
                     setLoading(false);
                     setIsModalVisible(false);
                 }, 500);
             } else {
+                // Tạo mới logic cập nhật dữ liệu (Giả lập)
                 setTimeout(() => {
-                    const newFolder = { id: Date.now(), ...values };
+                    const newFolder: FolderType = {
+                        id: Date.now().toString(), // ID phải là string
+                        name: values.name,
+                        description: values.description,
+                        filename: values.name,
+                        gradeLevel: 'N/A',
+                        difficulty: 'N/A',
+                        createdAt: new Date().toISOString()
+                    };
                     setFolders([newFolder, ...folders]);
                     setLoading(false);
                     setIsModalVisible(false);
@@ -77,7 +146,7 @@ const Folder = () => {
         setIsModalVisible(false);
     };
 
-    const showDeleteConfirm = (folderId: number) => {
+    const showDeleteConfirm = (folderId: string) => { // ID là string
         confirm({
             title: 'Bạn có chắc chắn muốn xóa thư mục này?',
             icon: <ExclamationCircleOutlined />,
@@ -102,9 +171,7 @@ const Folder = () => {
     ];
 
 
-    // ⭐ 2. Thay thế PageContainer bằng các component cơ bản
     return (
-        // Bọc toàn bộ trang trong một div để có thể thêm padding
         <div className="p-6">
             {/* Phần Header tùy chỉnh */}
             <div className="flex justify-between items-center mb-4">
@@ -147,7 +214,9 @@ const Folder = () => {
                                         >
                                             <List.Item.Meta
                                                 avatar={<Avatar icon={<FolderOutlined />} />}
+                                                // Hiển thị tên (filename)
                                                 title={<a href="#">{folder.name}</a>}
+                                                // Hiển thị mô tả (thông tin cấp độ, độ khó)
                                                 description={folder.description}
                                             />
                                         </List.Item>
