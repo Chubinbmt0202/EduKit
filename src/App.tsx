@@ -52,7 +52,7 @@ const App: React.FC = () => {
           <Route path="support" element={<FAQ />} />
           <Route path="feedback" element={<Feedback />} />
           <Route path="user-profile" element={<UserProfile />} />
-          <Route path="folders/quizzes/:id" element={<QuizDetail />} />
+          <Route path="folders/:id" element={<QuizDetail />} />
           <Route path="recharge" element={<RechargePaymentPage />} />
         </Route>
 

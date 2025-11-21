@@ -1,329 +1,302 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
-import { Card, Button, Typography, Space, Modal, Form, Input, Tooltip, Tag, List, Select } from 'antd';
-import { EditOutlined, PlusOutlined, DeleteOutlined, ClusterOutlined, TagOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import {
+    Empty, Card, Button, Input, Tooltip, Popconfirm,
+    message, Row, Col, Tag, Alert, List
+} from 'antd';
+import {
+    EditOutlined, DeleteOutlined, PlusOutlined,
+    SaveOutlined, CloseOutlined, ContainerOutlined,
+    DragOutlined, FolderOpenOutlined
+} from '@ant-design/icons';
 
-const { Paragraph, Title } = Typography;
-const { TextArea } = Input;
-const { Option } = Select;
-
-// Định nghĩa kiểu dữ liệu
-interface Category {
-    id: string;
-    name: string;
+// --- Interfaces ---
+export interface SortingCategory {
+    category_name: string;
+    items: string[];
 }
 
-interface ClassificationItem {
-    id: string;
-    text: string;
-    correctCategoryId: string;
+interface SortTabProps {
+    data: SortingCategory[];
+    instruction?: string;
+    onUpdate?: (newData: SortingCategory[]) => void;
 }
 
-interface ClassificationSet {
-    id: string;
-    title: string;
-    categories: Category[];
-    items: ClassificationItem[];
-    explanation?: string;
-}
+// --- Component Con: Editor (Chỉnh sửa Danh mục & Items) ---
+const CategoryEditor: React.FC<{
+    category: SortingCategory;
+    onSave: (newCat: SortingCategory) => void;
+    onCancel: () => void;
+}> = ({ category, onSave, onCancel }) => {
+    const [tempCat, setTempCat] = useState<SortingCategory>({ ...category });
+    const [newItemInput, setNewItemInput] = useState<string>('');
 
-// Dữ liệu giả lập ban đầu
-const initialMockClassification: ClassificationSet[] = [
-    {
-        id: 'c1',
-        title: "Phân loại Động vật và Thực vật",
-        categories: [
-            { id: 'cat1', name: "Động vật" },
-            { id: 'cat2', name: "Thực vật" },
-            { id: 'cat3', name: "Nấm" },
-        ],
-        items: [
-            { id: 'i1', text: "Cây Xoài", correctCategoryId: 'cat2' },
-            { id: 'i2', text: "Con Cá", correctCategoryId: 'cat1' },
-            { id: 'i3', text: "Cây Lúa", correctCategoryId: 'cat2' },
-            { id: 'i4', text: "Con Chim", correctCategoryId: 'cat1' },
-            { id: 'i5', text: "Con Vịt", correctCategoryId: 'cat1' },
-            { id: 'i6', text: "Nấm Rơm", correctCategoryId: 'cat3' },
-        ],
-        explanation: "Các mục được phân loại dựa trên nhóm sinh vật của chúng.",
-    },
-];
-
-const SortTab: React.FC = () => {
-    const [sets, setSets] = useState<ClassificationSet[]>(initialMockClassification);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [editingSet, setEditingSet] = useState<ClassificationSet | null>(null);
-    const [form] = Form.useForm();
-
-    // --- Hàm xử lý: XÓA Bộ đề ---
-    const handleDelete = (id: string) => {
-        Modal.confirm({
-            title: 'Xác nhận xóa bộ đề Phân loại',
-            content: 'Bạn có chắc chắn muốn xóa toàn bộ bộ phân loại này không?',
-            okText: 'Xóa',
-            cancelText: 'Hủy',
-            okButtonProps: { danger: true },
-            onOk: () => {
-                setSets(sets.filter(set => set.id !== id));
-            },
-        });
-    };
-
-    // --- Hàm xử lý: CHỈNH SỬA / THÊM Bộ đề ---
-    const handleEdit = (set: ClassificationSet | null) => {
-        setEditingSet(set);
-        setIsModalVisible(true);
-
-        if (set) {
-            const initialValues: any = {
-                title: set.title,
-                explanation: set.explanation,
-                categories: set.categories.map(c => ({ name: c.name, id: c.id })),
-                items: set.items.map(i => ({ text: i.text, correctCategoryId: i.correctCategoryId }))
-            };
-            form.setFieldsValue(initialValues);
-        } else {
-            form.resetFields();
-            // Thiết lập giá trị mặc định cho 2 nhóm và 4 mục
-            form.setFieldsValue({
-                categories: [{ name: 'Nhóm 1' }, { name: 'Nhóm 2' }],
-                items: [{}, {}, {}, {}]
-            });
-        }
-    };
-
-    // --- Hàm xử lý: LƯU Bộ đề ---
-    const handleSave = (values: any) => {
-        // 1. Chuẩn bị Categories với ID (giữ ID cũ hoặc tạo mới)
-        const currentCategories = editingSet?.categories || [];
-        const newCategories: Category[] = (values.categories || [])
-            .filter((cat: any) => cat.name)
-            .map((cat: any, index: number) => ({
-                id: currentCategories[index]?.id || `cat${Math.random().toString(36).substr(2, 4)}`,
-                name: cat.name,
-            }));
-
-        if (newCategories.length < 2) {
-            Modal.error({ title: 'Lỗi', content: 'Bộ phân loại phải có ít nhất 2 nhóm.' });
+    // Thêm item vào danh sách tạm
+    const handleAddItem = () => {
+        if (!newItemInput.trim()) return;
+        if (tempCat.items.includes(newItemInput.trim())) {
+            message.warning('Mục này đã tồn tại trong nhóm!');
             return;
         }
-
-        // 2. Chuẩn bị Items
-        const newItems: ClassificationItem[] = (values.items || [])
-            .filter((item: any) => item.text && item.correctCategoryId)
-            .map((item: any, index: number) => ({
-                id: editingSet?.items[index]?.id || `i${Math.random().toString(36).substr(2, 4)}`,
-                text: item.text,
-                correctCategoryId: item.correctCategoryId,
-            }));
-
-        if (newItems.length === 0) {
-            Modal.error({ title: 'Lỗi', content: 'Bộ phân loại phải có ít nhất một mục hợp lệ.' });
-            return;
-        }
-
-        const newSet: ClassificationSet = {
-            id: editingSet?.id || Math.random().toString(36).substr(2, 9),
-            title: values.title,
-            categories: newCategories,
-            items: newItems,
-            explanation: values.explanation,
-        };
-
-        if (editingSet) {
-            setSets(sets.map(s => s.id === newSet.id ? newSet : s));
-        } else {
-            setSets([newSet, ...sets]);
-        }
-
-        setIsModalVisible(false);
+        setTempCat({ ...tempCat, items: [...tempCat.items, newItemInput.trim()] });
+        setNewItemInput('');
     };
 
-
-    // Hàm render từng bộ phân loại
-    const renderClassificationCard = (item: ClassificationSet, index: number) => {
-        return (
-            <Card
-                key={item.id}
-                className='mb-4 shadow-lg border-l-4 border-gold-500' // Gold color cho tab này
-                title={<Paragraph strong className='!mb-0 text-base text-gold-700'>Bộ Phân loại {index + 1}: {item.title}</Paragraph>}
-                extra={
-                    <Space size="small">
-                        <Tag color="gold">Phân loại</Tag>
-                        <Tooltip title="Chỉnh sửa">
-                            <Button type="primary" icon={<EditOutlined />} size="small" onClick={() => handleEdit(item)} />
-                        </Tooltip>
-                        <Tooltip title="Xóa">
-                            <Button type="primary" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(item.id)} />
-                        </Tooltip>
-                    </Space>
-                }
-                bodyStyle={{ padding: '12px 24px' }}
-            >
-                {/* Hiển thị các mục phân loại theo nhóm */}
-                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${item.categories.length > 0 ? item.categories.length : 1}, 1fr)` }}>
-                    {item.categories.map(category => (
-                        <div key={category.id} className="p-3 border-2 border-dashed border-gray-400 rounded-lg">
-                            <Paragraph strong className='!mb-2 text-base text-center text-gold-600 border-b border-gray-300 pb-2'>
-                                <ClusterOutlined className='mr-2' />{category.name}
-                            </Paragraph>
-                            <List
-                                size="small"
-                                dataSource={item.items.filter(i => i.correctCategoryId === category.id)}
-                                renderItem={(classificationItem) => (
-                                    <List.Item className='justify-center bg-white border border-gray-300 rounded-md p-2 mb-2 shadow-sm'>
-                                        <TagOutlined className='mr-2 text-gold-500' /> {classificationItem.text}
-                                    </List.Item>
-                                )}
-                            />
-                        </div>
-                    ))}
-                </div>
-
-                {item.explanation && (
-                    <div className='mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-md'>
-                        <Paragraph strong className='!mb-1'><ClusterOutlined className="mr-2 text-yellow-500" />Giải thích chung:</Paragraph>
-                        <Paragraph className='!mb-0 text-sm'>{item.explanation}</Paragraph>
-                    </div>
-                )}
-            </Card>
-        );
+    // Xóa item khỏi danh sách tạm
+    const handleRemoveItem = (itemToRemove: string) => {
+        setTempCat({ ...tempCat, items: tempCat.items.filter(i => i !== itemToRemove) });
     };
 
     return (
-        <div style={{ height: '100%', overflowY: 'auto' }}>
-
-            <Button
-                type="dashed"
-                block
-                icon={<PlusOutlined />}
-                onClick={() => handleEdit(null)}
-                className='mb-6'
-            >
-                Thêm Bộ Phân Loại Mới
-            </Button>
-
-            {/* Danh sách Bộ đề */}
-            <div style={{
-                maxHeight: 'calc(100vh - 320px)',
-                overflowY: 'auto',
-                paddingRight: '10px'
-            }}>
-                {sets.map(renderClassificationCard)}
+        <Card
+            className="border-blue-400 shadow-lg mb-6 h-full"
+            title={category.category_name ? "Chỉnh sửa nhóm" : "Tạo nhóm mới"}
+            size="small"
+        >
+            {/* Tên nhóm */}
+            <div className="mb-4">
+                <label className="font-semibold block mb-2 text-blue-700">Tên nhóm (Category):</label>
+                <Input
+                    prefix={<FolderOpenOutlined />}
+                    value={tempCat.category_name}
+                    onChange={(e) => setTempCat({ ...tempCat, category_name: e.target.value })}
+                    placeholder="Ví dụ: Động vật ăn cỏ"
+                    className="font-medium"
+                />
             </div>
 
-            {/* Modal Chỉnh sửa / Thêm */}
-            <Modal
-                title={editingSet ? "Chỉnh sửa Bộ Phân loại" : "Thêm Bộ Phân loại Mới"}
-                open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
-                footer={[
-                    <Button key="back" onClick={() => setIsModalVisible(false)}>
-                        Hủy
-                    </Button>,
-                    <Button key="submit" type="primary" onClick={() => form.submit()}>
-                        Lưu Bộ Đề
-                    </Button>,
-                ]}
-                width={800}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSave}
+            {/* Danh sách items */}
+            <div className="mb-4">
+                <label className="font-semibold block mb-2 text-gray-600">Các phần tử trong nhóm:</label>
+
+                <Input.Group compact className="flex mb-3">
+                    <Input
+                        style={{ width: 'calc(100% - 40px)' }}
+                        value={newItemInput}
+                        onChange={(e) => setNewItemInput(e.target.value)}
+                        onPressEnter={handleAddItem}
+                        placeholder="Nhập phần tử rồi nhấn Enter..."
+                    />
+                    <Button icon={<PlusOutlined />} type="primary" onClick={handleAddItem} />
+                </Input.Group>
+
+                <div className="bg-gray-50 p-3 rounded border min-h-[100px] max-h-[200px] overflow-y-auto">
+                    {tempCat.items.length === 0 ? (
+                        <div className="text-gray-400 text-center italic text-xs mt-2">Chưa có phần tử nào</div>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {tempCat.items.map((item, idx) => (
+                                <Tag
+                                    key={idx}
+                                    closable
+                                    onClose={() => handleRemoveItem(item)}
+                                    color="blue"
+                                    className="m-0 text-sm py-1 px-2"
+                                >
+                                    {item}
+                                </Tag>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 border-t pt-4">
+                <Button icon={<CloseOutlined />} onClick={onCancel}>Hủy</Button>
+                <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={() => {
+                        if (!tempCat.category_name.trim()) return message.error("Chưa nhập tên nhóm");
+                        if (tempCat.items.length === 0) return message.warning("Nhóm nên có ít nhất 1 phần tử");
+                        onSave(tempCat);
+                    }}
                 >
-                    <Form.Item name="title" label="Tiêu đề Bộ Phân loại" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề bộ phân loại' }]}>
-                        <Input placeholder="Ví dụ: Phân loại Động vật và Thực vật" />
-                    </Form.Item>
+                    Lưu nhóm
+                </Button>
+            </div>
+        </Card>
+    );
+};
 
-                    <Form.Item name="explanation" label="Giải thích chung (Tùy chọn)">
-                        <TextArea rows={2} placeholder="Giải thích về tiêu chí phân loại" />
-                    </Form.Item>
+// --- Component Con: Viewer (Hiển thị Cái xô) ---
+const CategoryViewer: React.FC<{
+    index: number;
+    category: SortingCategory;
+    onEdit: () => void;
+    onDelete: () => void;
+}> = ({ category, onEdit, onDelete }) => {
+    return (
+        <Card
+            title={
+                <div className="flex items-center text-blue-800">
+                    <ContainerOutlined className="mr-2 text-lg" />
+                    <span className="truncate" title={category.category_name}>
+                        {category.category_name}
+                    </span>
+                    <span className="ml-2 text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                        {category.items.length} mục
+                    </span>
+                </div>
+            }
+            className="h-full shadow-sm hover:shadow-md transition-shadow group relative"
+            headStyle={{ background: '#f0f5ff', borderBottom: '2px solid #adc6ff' }}
+            bodyStyle={{ padding: '12px', height: 'calc(100% - 57px)', overflowY: 'auto' }}
+        >
+            {/* Nút Actions (Hiện khi hover) */}
+            <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Tooltip title="Sửa nhóm">
+                    <Button size="small" type="primary" ghost icon={<EditOutlined />} onClick={onEdit} />
+                </Tooltip>
+                <Popconfirm
+                    title="Xóa nhóm này?"
+                    onConfirm={onDelete}
+                    okText="Xóa"
+                    cancelText="Hủy"
+                    okButtonProps={{ danger: true, size: 'small' }}
+                >
+                    <Tooltip title="Xóa">
+                        <Button size="small" danger icon={<DeleteOutlined />} />
+                    </Tooltip>
+                </Popconfirm>
+            </div>
 
-                    <Title level={5}>1. Cấu hình các Nhóm (Categories)</Title>
+            {/* Nội dung các Items */}
+            <List
+                dataSource={category.items}
+                split={false}
+                renderItem={(item) => (
+                    <div className="bg-white mb-2 p-2 rounded border border-gray-200 shadow-sm flex items-center gap-2 hover:border-blue-300 transition-colors cursor-default">
+                        <DragOutlined className="text-gray-300 cursor-move" />
+                        <span className="font-medium text-gray-700">{item}</span>
+                    </div>
+                )}
+            />
+        </Card>
+    );
+};
 
-                    {/* Danh sách các Nhóm (Categories) */}
-                    <Form.List name="categories">
-                        {(fields, { add, remove }) => (
-                            <>
-                                {fields.map(({ key, name, ...restField }, index) => (
-                                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                        <Paragraph strong className='!mb-0'>{index + 1}.</Paragraph>
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, 'name']}
-                                            rules={[{ required: true, message: 'Thiếu tên Nhóm' }]}
-                                            className='!mb-0'
-                                        >
-                                            <Input placeholder={`Tên Nhóm ${index + 1} (Ví dụ: Động vật)`} style={{ width: 300 }} />
-                                        </Form.Item>
-                                        <DeleteOutlined onClick={() => remove(name)} style={{ color: 'red' }} />
-                                    </Space>
-                                ))}
-                                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} className='mb-4'>
-                                    Thêm Nhóm/Danh mục
-                                </Button>
-                            </>
+// --- Component Chính ---
+const SortTab: React.FC<SortTabProps> = ({ data, instruction, onUpdate }) => {
+    const [categories, setCategories] = useState<SortingCategory[]>([]);
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [isCreating, setIsCreating] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (data) setCategories(data);
+    }, [data]);
+
+    const updateParent = (newCats: SortingCategory[]) => {
+        setCategories(newCats);
+        if (onUpdate) onUpdate(newCats);
+    };
+
+    // CRUD
+    const handleAddNew = () => {
+        setIsCreating(true);
+        setEditingIndex(null);
+    };
+
+    const handleSaveNew = (newCat: SortingCategory) => {
+        const newCats = [...categories, newCat];
+        updateParent(newCats);
+        setIsCreating(false);
+        message.success('Đã thêm nhóm mới');
+    };
+
+    const handleSaveEdit = (index: number, updatedCat: SortingCategory) => {
+        const newCats = [...categories];
+        newCats[index] = updatedCat;
+        updateParent(newCats);
+        setEditingIndex(null);
+        message.success('Đã cập nhật nhóm');
+    };
+
+    const handleDelete = (index: number) => {
+        const newCats = categories.filter((_, i) => i !== index);
+        updateParent(newCats);
+        message.success('Đã xóa nhóm');
+    };
+
+    const emptyCat: SortingCategory = {
+        category_name: '',
+        items: []
+    };
+
+    return (
+        <div className="pb-8">
+            {instruction && (
+                <Alert
+                    message="Yêu cầu"
+                    description={instruction}
+                    type="info"
+                    showIcon
+                    className="mb-6"
+                />
+            )}
+
+            <div className="flex justify-between items-center mb-6">
+                <span className="text-gray-500 italic">Tổng số: {categories.length} nhóm</span>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddNew}
+                    disabled={isCreating || editingIndex !== null}
+                >
+                    Thêm nhóm
+                </Button>
+            </div>
+
+            {/* Khu vực Grid hiển thị Categories */}
+            <Row gutter={[24, 24]} align="stretch">
+                {/* Card Tạo mới (Nếu đang bật) */}
+                {isCreating && (
+                    <Col xs={24} md={12} lg={8}>
+                        <div className="animate-fade-in h-full">
+                            <CategoryEditor
+                                category={emptyCat}
+                                onSave={handleSaveNew}
+                                onCancel={() => setIsCreating(false)}
+                            />
+                        </div>
+                    </Col>
+                )}
+
+                {/* Danh sách các Category */}
+                {categories.map((cat, index) => (
+                    <Col xs={24} md={12} lg={8} key={index}>
+                        {editingIndex === index ? (
+                            <div className="animate-fade-in h-full">
+                                <CategoryEditor
+                                    category={cat}
+                                    onSave={(newCat) => handleSaveEdit(index, newCat)}
+                                    onCancel={() => setEditingIndex(null)}
+                                />
+                            </div>
+                        ) : (
+                            <div className="h-full">
+                                <CategoryViewer
+                                    index={index}
+                                    category={cat}
+                                    onEdit={() => {
+                                        setEditingIndex(index);
+                                        setIsCreating(false);
+                                    }}
+                                    onDelete={() => handleDelete(index)}
+                                />
+                            </div>
                         )}
-                    </Form.List>
+                    </Col>
+                ))}
+            </Row>
 
-                    <Title level={5}>2. Các Mục cần Phân loại (Items)</Title>
-
-                    {/* Danh sách các Mục (Items) */}
-                    <Form.List name="items">
-                        {(fields, { add, remove }) => (
-                            <>
-                                {fields.map(({ key, name, ...restField }, index) => (
-                                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                                        <Paragraph strong className='!mb-0'>{index + 1}.</Paragraph>
-
-                                        {/* Input Mục */}
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, 'text']}
-                                            rules={[{ required: true, message: 'Thiếu nội dung Mục' }]}
-                                            className='!mb-0'
-                                        >
-                                            <Input placeholder="Nội dung mục (Ví dụ: Cây Xoài)" style={{ width: 250 }} />
-                                        </Form.Item>
-
-                                        {/* Chọn Nhóm Đúng */}
-                                        <Form.Item
-                                            {...restField}
-                                            name={[name, 'correctCategoryId']}
-                                            rules={[{ required: true, message: 'Chọn nhóm đúng' }]}
-                                            className='!mb-0'
-                                        >
-                                            <Select placeholder="Chọn Nhóm đúng" style={{ width: 180 }}>
-                                                {/* Watch Categories để cập nhật Options */}
-                                                <Form.Item noStyle shouldUpdate>
-                                                    {() => {
-                                                        const categories = form.getFieldValue('categories') || [];
-                                                        // Sử dụng ID thực tế của Category nếu có, nếu không dùng name tạm thời
-                                                        return categories
-                                                            .filter((c: any) => c.name)
-                                                            .map((c: any, cIndex: number) => (
-                                                                <Option key={c.id || `temp-${cIndex}`} value={c.id || `temp-${cIndex}`}>
-                                                                    {c.name}
-                                                                </Option>
-                                                            ));
-                                                    }}
-                                                </Form.Item>
-                                            </Select>
-                                        </Form.Item>
-
-                                        <DeleteOutlined onClick={() => remove(name)} style={{ color: 'red' }} />
-                                    </Space>
-                                ))}
-                                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                                    Thêm Mục cần Phân loại
-                                </Button>
-                            </>
-                        )}
-                    </Form.List>
-
-                </Form>
-            </Modal>
+            {categories.length === 0 && !isCreating && (
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="Chưa có nhóm phân loại nào."
+                >
+                    <Button type="dashed" onClick={handleAddNew}>Tạo nhóm đầu tiên</Button>
+                </Empty>
+            )}
         </div>
     );
 };

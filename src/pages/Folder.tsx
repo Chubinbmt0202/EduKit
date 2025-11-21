@@ -28,7 +28,7 @@ const Folder = () => {
     const [folders, setFolders] = useState<FolderType[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    // Sử dụng FolderType mới
+    // Sử dụng FolderType mới0
     const [editingFolder, setEditingFolder] = useState<FolderType | null>(null);
     const [form] = Form.useForm();
     const { user } = useAuth();
@@ -85,10 +85,10 @@ const Folder = () => {
         fetchFolders();
     }, [user]); // Thêm user vào dependency để re-run khi user thay đổi (đăng nhập)
 
-    // --- Các hàm logic còn lại (Đã được điều chỉnh để khớp với FolderType) ---
-
-    // Lưu ý: Các hàm tạo/sửa/xóa hiện tại vẫn đang dùng logic mock (setTimeout), 
-    // cần được thay thế bằng các lời gọi axios tương ứng.
+    const handleClickDetail = (folderId: string) => {
+        // Điều hướng đến trang chi tiết folder (giả sử đường dẫn là /folders/:id)
+        window.location.href = `/folders/${folderId}`;
+    };
 
     const showCreateModal = () => {
         setEditingFolder(null);
@@ -206,6 +206,7 @@ const Folder = () => {
                                     dataSource={folders}
                                     renderItem={(folder) => (
                                         <List.Item
+                                            onClick={() => handleClickDetail(folder.id)}
                                             actions={[
                                                 <Dropdown menu={{ items: getMenuItems(folder) }} trigger={['click']}>
                                                     <Button type="text" icon={<MoreOutlined />} />
